@@ -29,7 +29,7 @@ def print_json(input):
 			if in_brackets == 0:
 				print(output)
 				output = "\t" * tabs
-		elif c == '[':
+		elif c == '[' and in_brackets != 0:
 			in_list += 1
 			output += c
 		elif c == ']':
@@ -55,16 +55,20 @@ def print_json(input):
 			output += c
 
 
-def API_request(token, end_point):
+def API_request(token, end_point, call_params = { }):
 	end_point = 'https://api.intra.42.fr/' + end_point
 	headers_token = { 'Authorization': 'Bearer ' + token }
-	request = requests.get(end_point, headers=headers_token)
+	request_params = { 'per_page': 100}
+	request_params.update(call_params)
+	
+	request = requests.get(end_point, headers=headers_token, params=request_params)
 	if request.status_code == 200:
 		print(request)
 		print_json(request.headers)
 		#print(request.text)
-		ret = json.loads(request.text)
-		return ret
+		#ret = json.loads(request.text)
+		print(end_point)
+		return request
 	else:
 		print("Failed to make a request")
 		pass
@@ -92,9 +96,11 @@ def main():
 	if token:
 		print(token)
 		response = API_request(token, 'oauth/token/info')
-		print_json(response)
-		response = API_request(token, '/v2/campus')
-		print_json(response)
+		print_json(response.text)
+		#response = API_request(token, 'v2/campus', 2)
+		response = API_request(token, 'v2/scale_teams', { 'page': 423395, 'per_page': 5})
+		print_json(response.text)
+		print_json(response.headers)
 	else:
 		exit()
 
