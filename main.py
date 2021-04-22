@@ -63,10 +63,6 @@ def API_request(token, end_point, call_params = { }):
 	
 	request = requests.get(end_point, headers=headers_token, params=request_params)
 	if request.status_code == 200:
-		print(request)
-		print_json(request.headers)
-		#print(request.text)
-		#ret = json.loads(request.text)
 		print(end_point)
 		return request
 	else:
@@ -90,17 +86,56 @@ def get_token():
 		print("API error on getting access token")
 		pass
 
+def get_campus(campus = "Hive"):
+	file_load = open('campus.json')
+	data = json.load(file_load)
+	return data[campus]
+
+def get_students(id):
+	if type(id) != str:
+		id = str(id)
+	file_load = open('users.json')
+	data = json.load(file_load)
+	return data
+
+def combine_arr_dict(dic1, dic2):
+	for ob2 in dic2:
+		if ob2 not in dic1:
+			dic1.append(ob2)
+	return dic1
+
+def print_more_students(data):
+	with open('users.json', 'w') as outfile:
+		json.dump(data, outfile)
+
 def main():
 	print("Hello world")
 	token = get_token()
+	campus = get_campus()
+	students = get_students(campus['id'])
+	print_json(campus)
 	if token:
 		print(token)
-		response = API_request(token, 'oauth/token/info')
-		print_json(response.text)
-		#response = API_request(token, 'v2/campus', 2)
-		response = API_request(token, 'v2/scale_teams', { 'page': 423395, 'per_page': 5})
-		print_json(response.text)
+		#response = API_request(token, 'oauth/token/info')
+		#print_json(response.text)
+
+		#response = API_request(token, 'v2/campus', { 'page': 2, 'per_page' : 30})
+
+		#response = API_request(token, 'v2/scale_teams', { 'page': 423395, 'per_page': 5})
+
+		response = API_request(token, 'v2/users', {'campus_id' : campus['id'], 'page' : 6})
+
+		#print_json(response.text)
 		print_json(response.headers)
+		#new_students = { str(campus['id']): json.loads(response.text) }
+		#print_json(students)
+		#students[str(campus['id'])].append(new_students[str(campus['id'])])
+		#students[str(campus['id'])] = students[str(campus['id'])] + list(set(json.loads(response.text)) - set(students[str(campus['id'])]))
+		students[str(campus['id'])] = combine_arr_dict(students[str(campus['id'])], json.loads(response.text))
+
+		print_more_students(students)
+		
+
 	else:
 		exit()
 
