@@ -67,6 +67,8 @@ def API_request(token, end_point, call_params = { }):
 		return request
 	else:
 		print("Failed to make a request")
+		print(request)
+		print(request.headers)
 		pass
 
 def get_token():
@@ -84,6 +86,8 @@ def get_token():
 		return parsed_ret['access_token']
 	else:
 		print("API error on getting access token")
+		print(token)
+		print(token.headers)
 		pass
 
 def get_campus(campus = "Hive"):
@@ -104,15 +108,38 @@ def combine_arr_dict(dic1, dic2):
 			dic1.append(ob2)
 	return dic1
 
-def print_more_students(data):
+def print_more_students(students, campus_id):
+	campus_id = str(campus_id)
+	response = API_request(token, 'v2/users', {'campus_id' : campus_id, 'page' : 1})
+	print_json(response.headers)
+	students[campus_id] = combine_arr_dict(students[campus_id], json.loads(response.text))
 	with open('users.json', 'w') as outfile:
 		json.dump(data, outfile)
+
+def students_to_str(students, campus_id):
+	ret = ['']
+	rlen = 0
+	i = 0
+	for student in students[str(campus_id)]:
+		if ret[i] != '':
+			ret[i] += ','
+		ret[i] += str(student['id'])
+		rlen += 1
+		if rlen > 186:
+			rlen = 0
+			i += 1
+			ret.append('')
+	print(ret)
+	return ret
 
 def main():
 	print("Hello world")
 	token = get_token()
 	campus = get_campus()
 	students = get_students(campus['id'])
+	student_id = '59528,59596'
+	student_ids = students_to_str(students, campus['id'])
+	print(student_ids)
 	print_json(campus)
 	if token:
 		print(token)
@@ -122,20 +149,12 @@ def main():
 		#response = API_request(token, 'v2/campus', { 'page': 2, 'per_page' : 30})
 
 		#response = API_request(token, 'v2/scale_teams', { 'page': 423395, 'per_page': 5})
-
-		response = API_request(token, 'v2/users', {'campus_id' : campus['id'], 'page' : 6})
-
-		#print_json(response.text)
-		print_json(response.headers)
-		#new_students = { str(campus['id']): json.loads(response.text) }
-		#print_json(students)
-		#students[str(campus['id'])].append(new_students[str(campus['id'])])
-		#students[str(campus['id'])] = students[str(campus['id'])] + list(set(json.loads(response.text)) - set(students[str(campus['id'])]))
-		students[str(campus['id'])] = combine_arr_dict(students[str(campus['id'])], json.loads(response.text))
-
-		print_more_students(students)
-		
-
+		response = API_request(token, 'v2/scale_teams', { 'page': 1, 'per_page': 30, 'filter[user_id]' : student_ids[0], \
+			'range[created_at]' : '2021-04-01,2021-04-23'})
+		if response:
+			print_json(response.text)
+			print_json(response.headers)
+		#print(student_ids)
 	else:
 		exit()
 
