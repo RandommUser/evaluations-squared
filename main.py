@@ -98,7 +98,10 @@ def main():
 	helpers.print_json(campus)
 
 	print(student_ids)
-	database.create_connection('42API.db')
+	connection = database.create_connection('42API.db')
+	if connection:
+		database.create_table(connection, database.student_table)
+		connection.close()
 	exit()
 
 	if token:
