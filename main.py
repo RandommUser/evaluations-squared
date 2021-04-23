@@ -95,11 +95,21 @@ def get_campus(campus = "Hive"):
 	data = json.load(file_load)
 	return data[campus]
 
+# get array dict. removes bad logins from the list
+def exclude_bad_logins(student_array):
+	res = []
+	for student in student_array:
+		if '3b3-' not in student['login']:
+			res.append(student)
+	return res
+
 def get_students(id):
 	if type(id) != str:
 		id = str(id)
 	file_load = open('users.json')
 	data = json.load(file_load)
+	for campus in data: # remove students with bad id
+		data[str(campus)] = exclude_bad_logins(data[str(campus)])
 	return data
 
 def combine_arr_dict(dic1, dic2):
@@ -112,15 +122,19 @@ def print_more_students(students, campus_id):
 	campus_id = str(campus_id)
 	response = API_request(token, 'v2/users', {'campus_id' : campus_id, 'page' : 1})
 	print_json(response.headers)
-	students[campus_id] = combine_arr_dict(students[campus_id], json.loads(response.text))
+	cleaned_array = json.loads(response.text)
+	students[campus_id] = combine_arr_dict(students[campus_id], cleaned_array)
 	with open('users.json', 'w') as outfile:
 		json.dump(data, outfile)
 
 def students_to_str(students, campus_id):
+	invalid = [ '3b3-']
 	ret = ['']
 	rlen = 0
 	i = 0
 	for student in students[str(campus_id)]:
+		#if '3b3-' in str(student['login']):
+		#	continue
 		if ret[i] != '':
 			ret[i] += ','
 		ret[i] += str(student['id'])
@@ -141,10 +155,12 @@ def main():
 	student_ids = students_to_str(students, campus['id'])
 	print(student_ids)
 	print_json(campus)
+
+	print(student_ids)
+	exit()
+
 	if token:
 		print(token)
-		#response = API_request(token, 'oauth/token/info')
-		#print_json(response.text)
 
 		#response = API_request(token, 'v2/campus', { 'page': 2, 'per_page' : 30})
 
