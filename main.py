@@ -1,65 +1,12 @@
-import requests, sys, json
+import requests, sys, json, database, helpers
 
-def print_json(input):
-	tabs = 0
-	in_list = 0
-	in_brackets = 0
-	quotes = {'big': 0, 'small': 0}
-	output = ""
-	stringify = ""
-	if type(input) == str:
-		stringify = input
-	elif type(input) == dict:
-		stringify = json.dumps(input)
-	else:
-		stringify = str(input)
-	for c in stringify:
-		if c == '{':
-			tabs += 1
-			output += c
-			print(output)
-			output = "\t" * tabs
-			in_brackets += 1
-		elif c == '}':
-			print(output)
-			tabs -= 1
-			in_brackets -= 1
-			output = "\t" * tabs
-			output += c
-			if in_brackets == 0:
-				print(output)
-				output = "\t" * tabs
-		elif c == '[' and in_brackets != 0:
-			in_list += 1
-			output += c
-		elif c == ']':
-			in_list -= 1
-			output += c
-		elif c == '"' and quotes['big'] == 0:
-			output += c
-			quotes['big'] += 1
-		elif c == '"' and quotes['big'] != 0:
-			output += c
-			quotes['big'] -= 1
-		elif c == "'" and quotes['small'] == 0:
-			output += c
-			quotes['small'] += 1
-		elif c == "'" and quotes['small'] != 0:
-			output += c
-			quotes['small'] -= 1
-		elif c == ',' and in_list == 0 and quotes['small'] == 0 and quotes['big'] == 0:
-			output += c
-			print(output)
-			output = "\t" * tabs
-		else:
-			output += c
-
-
+# make a request to the 42 API. 
+# params passed in the function call.
 def API_request(token, end_point, call_params = { }):
 	end_point = 'https://api.intra.42.fr/' + end_point
 	headers_token = { 'Authorization': 'Bearer ' + token }
-	request_params = { 'per_page': 100}
-	request_params.update(call_params)
+	request_params = { 'per_page': 100} # default the page size to 100
+	request_params.update(call_params)	#combine the params
 	
 	request = requests.get(end_point, headers=headers_token, params=request_params)
 	if request.status_code == 200:
@@ -71,17 +18,14 @@ def API_request(token, end_point, call_params = { }):
 		print(request.headers)
 		pass
 
+# get the access token from the 42API
 def get_token():
-	app_token = open('app.json')
+	app_token = open('app.json')	#app UID and secret from local file
 
 	data = json.load(app_token)
-	#print(data)
 	request_data = 'grant_type=client_credentials&client_id=' + data['UID'] + '&client_secret=' + data['secret']
-	#print(request_data)
 	token = requests.post('https://api.intra.42.fr/oauth/token', request_data)
-#	print(token.status_code)
 	if token.status_code == 200:
-		#print(token.text)
 		parsed_ret = json.loads(token.text)
 		return parsed_ret['access_token']
 	else:
@@ -90,7 +34,8 @@ def get_token():
 		print(token.headers)
 		pass
 
-def get_campus(campus = "Hive"):
+# read campus data from local json file
+def get_campus(campus = "Helsinki"):
 	file_load = open('campus.json')
 	data = json.load(file_load)
 	return data[campus]
@@ -103,6 +48,7 @@ def exclude_bad_logins(student_array):
 			res.append(student)
 	return res
 
+# get student array dict from local json based on the request campus_id
 def get_students(id):
 	if type(id) != str:
 		id = str(id)
@@ -112,29 +58,24 @@ def get_students(id):
 		data[str(campus)] = exclude_bad_logins(data[str(campus)])
 	return data
 
-def combine_arr_dict(dic1, dic2):
-	for ob2 in dic2:
-		if ob2 not in dic1:
-			dic1.append(ob2)
-	return dic1
-
+# print out more students in the students.json file
+# no dupes, manually more pages from API
 def print_more_students(students, campus_id):
 	campus_id = str(campus_id)
 	response = API_request(token, 'v2/users', {'campus_id' : campus_id, 'page' : 1})
-	print_json(response.headers)
+	helpers.print_json(response.headers)
 	cleaned_array = json.loads(response.text)
-	students[campus_id] = combine_arr_dict(students[campus_id], cleaned_array)
+	students[campus_id] = helpers.combine_arr_dict(students[campus_id], cleaned_array)
 	with open('users.json', 'w') as outfile:
 		json.dump(data, outfile)
 
+# create a user_id string for campus based filter for API calls.
+# use array to split it, from testing the filter limit is 186 ids on one request
 def students_to_str(students, campus_id):
-	invalid = [ '3b3-']
 	ret = ['']
 	rlen = 0
 	i = 0
 	for student in students[str(campus_id)]:
-		#if '3b3-' in str(student['login']):
-		#	continue
 		if ret[i] != '':
 			ret[i] += ','
 		ret[i] += str(student['id'])
@@ -154,9 +95,10 @@ def main():
 	student_id = '59528,59596'
 	student_ids = students_to_str(students, campus['id'])
 	print(student_ids)
-	print_json(campus)
+	helpers.print_json(campus)
 
 	print(student_ids)
+	database.create_connection('42API.db')
 	exit()
 
 	if token:
@@ -168,8 +110,8 @@ def main():
 		response = API_request(token, 'v2/scale_teams', { 'page': 1, 'per_page': 30, 'filter[user_id]' : student_ids[0], \
 			'range[created_at]' : '2021-04-01,2021-04-23'})
 		if response:
-			print_json(response.text)
-			print_json(response.headers)
+			helpers.print_json(response.text)
+			helpers.print_json(response.headers)
 		#print(student_ids)
 	else:
 		exit()
