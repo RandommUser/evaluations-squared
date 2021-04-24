@@ -1,3 +1,4 @@
+# global
 import sys, json
 
 # combine two arrays of dictionaries without dupes
