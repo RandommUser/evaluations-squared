@@ -1,4 +1,7 @@
-import requests, sys, json, database, helpers
+# global
+import requests, sys, json
+# local
+import database, helpers
 
 # make a request to the 42 API. 
 # params passed in the function call.
@@ -102,7 +105,7 @@ def main():
 	if connection:
 		database.create_table(connection, database.student_table)
 		connection.close()
-	exit()
+	#exit()
 
 	if token:
 		print(token)
@@ -110,8 +113,9 @@ def main():
 		#response = API_request(token, 'v2/campus', { 'page': 2, 'per_page' : 30})
 
 		#response = API_request(token, 'v2/scale_teams', { 'page': 423395, 'per_page': 5})
-		response = API_request(token, 'v2/scale_teams', { 'page': 1, 'per_page': 30, 'filter[user_id]' : student_ids[0], \
-			'range[created_at]' : '2021-04-01,2021-04-23'})
+		"""response = API_request(token, 'v2/scale_teams', { 'page': 1, 'per_page': 1, 'filter[user_id]' : student_ids[0], \
+			'range[created_at]' : '2021-04-01,2021-04-23'})"""
+		response = API_request(token, 'v2/feedbacks', { 'scale_team_id': 3151573, 'page': 1, 'per_page': 1 })
 		if response:
 			helpers.print_json(response.text)
 			helpers.print_json(response.headers)
