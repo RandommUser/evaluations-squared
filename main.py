@@ -1,7 +1,7 @@
 # global
 import requests, sys, json
 # local
-import database, helpers
+import database, helpers, database_func
 
 # make a request to the 42 API. 
 # params passed in the function call.
@@ -101,9 +101,11 @@ def main():
 	helpers.print_json(campus)
 
 	print(student_ids)
-	connection = database.create_connection('42API.db')
+	connection = database_func.create_connection(database.database_name)
 	if connection:
-		database.create_table(connection, database.student_table)
+		database_func.create_table(connection, database.student_table)
+		database_func.create_table(connection, database.campus_table)
+		#database_func.insert_to_table(connection, "campus", database.campus_keys, ("13", "Helsinki"))
 		connection.close()
 	#exit()
 
