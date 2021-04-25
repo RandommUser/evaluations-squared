@@ -2,30 +2,24 @@
 import sqlite3
 from sqlite3 import Error
 
-student_table = """CREATE TABLE IF NOT EXISTS students (
-	id integer PRIMARY KEY,
-	user_id integer NOT NULL,
-	login text NOT NULL,
-	url text NOT NULL
+
+# database name
+database_name = '42API.db'
+
+# table key tuples used in insert_to_table()
+campus_keys = ("campus_id", "name")
+student_keys = ("user_id", "login", "campus_id", "url")
+
+
+# table structures
+campus_table = """CREATE TABLE IF NOT EXISTS campus (
+	campus_id integer NOT NULL,
+	name text NOT NULL
 );"""
 
-# create a new table in the database
-def create_table(connection, table):
-	try:
-		cursor = connection.cursor()
-		cursor.execute(table)
-	except Error as err:
-		print(err)
-
-# connect to a SQLite database
-def create_connection(db):
-	connection = None
-	try:
-		connection = sqlite3.connect(db)
-		print(sqlite3.version)
-	except Error as err:
-		print(err)
-	finally:
-		if connection:
-			#connection.close()
-			return connection
+student_table = """CREATE TABLE IF NOT EXISTS students (
+	user_id integer NOT NULL,
+	login text NOT NULL,
+	campus_id integer NOT NULL,
+	url text NOT NULL
+);"""
