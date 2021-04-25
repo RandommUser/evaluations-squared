@@ -7,9 +7,14 @@ from sqlite3 import Error
 database_name = '42API.db'
 
 # table key tuples used in insert_to_table()
-campus_keys = ("campus_id", "name")
-student_keys = ("user_id", "login", "campus_id", "url")
+campus_keys = tuple(("campus_id", "name"))
+student_keys = tuple(("user_id", "login", "campus_id", "url"))
 
+# unique value in each table that cannot match with any other entry
+unique = {
+	"campus" : "campus_id",
+	"students" : "user_id"
+}
 
 # table structures
 campus_table = """CREATE TABLE IF NOT EXISTS campus (
