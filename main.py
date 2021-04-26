@@ -1,47 +1,7 @@
 # global
 import requests, sys, json
 # local
-import database, helpers, database_func
-
-# make a request to the 42 API. 
-# params passed in the function call.
-def API_request(token, end_point, call_params = { }):
-	end_point = 'https://api.intra.42.fr/' + end_point
-	headers_token = { 'Authorization': 'Bearer ' + token }
-	request_params = { 'per_page': 100} # default the page size to 100
-	request_params.update(call_params)	#combine the params
-	
-	request = requests.get(end_point, headers=headers_token, params=request_params)
-	if request.status_code == 200:
-		print(end_point)
-		return request
-	else:
-		print("Failed to make a request")
-		print(request)
-		print(request.headers)
-		pass
-
-# get the access token from the 42API
-def get_token():
-	app_token = open('app.json')	#app UID and secret from local file
-
-	data = json.load(app_token)
-	request_data = 'grant_type=client_credentials&client_id=' + data['UID'] + '&client_secret=' + data['secret']
-	token = requests.post('https://api.intra.42.fr/oauth/token', request_data)
-	if token.status_code == 200:
-		parsed_ret = json.loads(token.text)
-		return parsed_ret['access_token']
-	else:
-		print("API error on getting access token")
-		print(token)
-		print(token.headers)
-		pass
-
-# read campus data from local json file
-def get_campus(campus = "Helsinki"):
-	file_load = open('campus.json')
-	data = json.load(file_load)
-	return data[campus]
+import database, helpers, database_func, api42
 
 # get array dict. removes bad logins from the list
 def exclude_bad_logins(student_array):
@@ -91,23 +51,31 @@ def students_to_str(students, campus_id):
 	return ret
 
 def main():
-	print("Hello world")
-	token = get_token()
-	campus = get_campus()
-	students = get_students(campus['id'])
-	student_id = '59528,59596'
-	student_ids = students_to_str(students, campus['id'])
-	print(student_ids)
-	helpers.print_json(campus)
-
-	print(student_ids)
+	token = api42.get_token()
+	#ret = api42.API_request(token['access_token'], 'v2/scale_teams', { 'page': 1, 'per_page' : 1})
+	#helpers.print_json(ret.headers)
+	#exit()
 	connection = database_func.create_connection(database.database_name)
 	if connection:
-		database_func.create_table(connection, database.student_table)
+		database_func.create_table(connection, database.students_table)
 		database_func.create_table(connection, database.campus_table)
-		#database_func.insert_to_table(connection, "campus", database.campus_keys, ("13", "Helsinki"))
+		"""
+		ret = database_func.replace_into_table(connection, "campus", database.campus_keys, ("14", "New York"))
+		print(ret)
+		ret = database_func.select_all_table(connection, "campus", database.campus_keys)
+		print(ret)
+		ret = database_func.select_from_table(connection, "campus", database.campus_keys, tuple(("campus_id =", "name =")), tuple(("13", "Paris")), "OR")
+		print(ret)
+		print(len(ret))
+		"""
+		#api42.API_to_table(connection, token, "v2/campus", "campus")
+		db = "students"
+		#api42.API_to_table(connection, token, "v2/users", db, { 'campus_id' : '13' }, 13)
+		database_func.delete_where(connection, db, (("login LIKE",)), (("3b3-%",)))
+		ret = database_func.select_all_table(connection, db, database.keys[db])
+		helpers.print_db(ret, database.keys[db])
 		connection.close()
-	#exit()
+	exit()
 
 	if token:
 		print(token)
