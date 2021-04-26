@@ -8,6 +8,21 @@ def combine_arr_dict(dic1, dic2):
 			dic1.append(ob2)
 	return dic1
 
+def print_db(input, keys = None, default = True):
+	if keys != None:
+		headers = ""
+		if default == True:
+			headers += "rowid"
+		for key in keys:
+			headers += "\t" + key
+		print(headers)
+	for row in input:
+		row_print = ""
+		for entry in row:
+			row_print += str(entry) + "\t"
+		print(row_print)
+
+
 # print out a json string in somewhat more readable format
 def print_json(input):
 	tabs = 0
@@ -62,3 +77,6 @@ def print_json(input):
 			output = "\t" * tabs
 		else:
 			output += c
+
+if __name__ == '__main__':
+	exit()
