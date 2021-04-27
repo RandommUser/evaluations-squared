@@ -79,13 +79,14 @@ def API_to_table(connection, token, end_point, table, call_params = { }, campus 
 # params passed in the function call.
 def API_request(token, end_point, call_params = { }):
 	end_point = 'https://api.intra.42.fr/' + end_point
-	headers_token = { 'Authorization': 'Bearer ' + token }
+	headers_token = { 'Authorization': 'Bearer ' + token['access_token'] }
 	request_params = { 'per_page': 100} # default the page size to 100
 	request_params.update(call_params)	#combine the params
 	
 	request = requests.get(end_point, headers=headers_token, params=request_params)
 	if request.status_code == 200:
 		print(end_point)
+		print(request_params)
 		return request
 	else: # 401 if old token
 		print("Failed to make a request")
