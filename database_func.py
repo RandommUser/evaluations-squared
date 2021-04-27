@@ -36,7 +36,6 @@ def select_distinct(connection, table, keys):
 		print(type(keys))
 		return 
 	sql = ''' SELECT DISTINCT ''' + keys + ''' FROM ''' + table + ''';'''
-	print(sql)
 	cursor = connection.cursor()
 	cursor.execute(sql)
 	rows = cursor.fetchall()
@@ -161,8 +160,11 @@ def	select_from_table(connection, table, keys, where = None, values = None, betw
 			select += ","
 		select += key
 	sql = ''' SELECT ''' + select + ''' FROM ''' + table
-	sql += += where_values(where, values, between) + ';'
-	cursor.execute(sql)
+	sql += where_values(where, values, between) + ';'
+	if values != None:
+		cursor.execute(sql, values)
+	else:
+		cursor.execute(sql)
 	rows = cursor.fetchall()
 	return rows
 
