@@ -25,6 +25,8 @@ def print_db(input, keys = None, default = True):
 
 # print out a json string in somewhat more readable format
 def print_json(input):
+	if input == None:
+		return
 	tabs = 0
 	in_list = 0
 	in_brackets = 0
