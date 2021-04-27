@@ -10,7 +10,6 @@ def	project_average(connection, campus, proj_table = "projects", eval_table = "e
 	campus = str(campus)
 	# unique projects
 	projects = select_from_table(connection, proj_table, (("project_id",)), (("campus_id =",)), (("13",)))
-	print(projects)
 	for project in projects:
 		amount = 0
 		i = 0
