@@ -24,10 +24,11 @@ helpers.print_db(students, (("name", "average_time")), False)
 """
 
 def main():
+	connection = None
 	try:
-	token = api42.get_token()
-	connection = database.establish()
-	database.setup_db(connection, token)
+		token = api42.get_token()
+		connection = database.establish()
+		database.setup_db(connection, token)
 	except:
 		print("Error")
 	finally:
