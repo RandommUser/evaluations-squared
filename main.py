@@ -55,6 +55,12 @@ def main():
 	#ret = api42.API_request(token['access_token'], 'v2/scale_teams', { 'page': 1, 'per_page' : 1})
 	#helpers.print_json(ret.headers)
 	#exit()
+
+
+	ret = api42.API_request(token, "v2/projects/", { 'filter[id]' : '15', 'per_page' : '2' })
+	helpers.print_json(ret.text)
+	helpers.print_json(ret.headers)
+	exit()
 	connection = database_func.create_connection(database.database_name)
 	if connection:
 		database_func.create_table(connection, database.students_table)
